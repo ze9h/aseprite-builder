@@ -1,4 +1,4 @@
-name: Build and release Aseprite
+name: Build and release Aseprite (macOS x86)
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
         matrix:
-          os: [ windows-latest,macOS-latest ]
+          os: [ macOS-13 ]
         fail-fast: false
     steps:
       - name: Install Dependencies
@@ -72,20 +72,9 @@ jobs:
         working-directory: aseprite
         shell: bash
         run: |
-          if [[ "${{ runner.os }}" == "Windows" ]] ; then
-            choco install wget -y --no-progress
-            wget https://github.com/aseprite/skia/releases/download/m124-08a5439a6b/Skia-Windows-Release-x64.zip
-            unzip Skia-Windows-Release-x64.zip -d skia
-          elif [[ "${{ runner.os }}" == "macOS" ]] ; then
-            wget https://github.com/aseprite/skia/releases/download/m124-08a5439a6b/Skia-macOS-Release-arm64.zip
-            unzip Skia-macOS-Release-arm64.zip -d skia
-          else
-            wget https://github.com/aseprite/skia/releases/download/m124-08a5439a6b/Skia-Linux-Release-x64.zip
-            unzip Skia-Linux-Release-x64.zip -d skia
-          fi
+          wget https://github.com/aseprite/skia/releases/download/m124-08a5439a6b/Skia-macOS-Release-x64.zip
+          unzip Skia-macOS-Release-x64.zip -d skia
       - uses: aseprite/get-ninja@main
-      - uses: ilammy/msvc-dev-cmd@v1
-        if: runner.os == 'Windows'
       - name: Generating Makefiles
         shell: bash
         working-directory: aseprite
@@ -94,11 +83,7 @@ jobs:
           export laf_backend=skia
           export enable_scripting=on
 
-          if [[ "${{ runner.os }}" == "macOS" ]] ; then
-            export skia_arch=arm64
-          else
-            export skia_arch=x64
-          fi
+          export skia_arch=x64
 
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
